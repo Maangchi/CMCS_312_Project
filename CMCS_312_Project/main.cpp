@@ -1,3 +1,7 @@
+//Brandon Willoughby
+//CMSC 312
+//Project Phase 1
+
 #include <iostream>
 #include <fstream>
 #include <vector>
