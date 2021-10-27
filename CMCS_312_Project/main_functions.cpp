@@ -28,8 +28,7 @@ void createProcesses(vector<Process_Manager*>& processes, int howMany) {
 	processes.reserve(howMany);
 	for (int i = 0; i < howMany; i++) {
 		Process_Manager* process = new Process_Manager;
-		process->setPIDincrements(i,i,i);
-		//process->setProcessNum(i);
+		process->setPIDincrements(i, i, i);
 		process->genPCB();
 		process->genVal();
 		processes.push_back(process);
@@ -43,17 +42,20 @@ void printP(vector<Process_Manager*>& processes) {
 	}
 }
 
+
+void printPCB(vector<Process_Manager*>& processes) {
+	for (auto itr : processes) {
+		itr->printPCB();
+	}
+}
+
 void computeProcess(vector<Process_Manager*>& process) {
 	int selection = 0;
 	cout << "Select which process you would like to run: ";
 	cin >> selection;
 	process[selection]->printP();
-	int c = process[selection]->getCalc();
-	int c1 = process[selection]->getCalc1();
-	int c2 = process[selection]->getCalc2();
-	int processTime = c + c1 + c2;
-
-	cout << "Your process Ran for: " << processTime << " Cycles" << endl;
+	int total = process[selection]->getCalcTotal();
+	cout << "Your process Ran for: " << total << " Cycles" << endl;
 }
 
 void computeIO(vector<Process_Manager*>& process) {

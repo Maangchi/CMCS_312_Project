@@ -17,6 +17,8 @@ void createProcesses(vector<Process_Manager*>& processes, int howMany);
 void printP(vector<Process_Manager*>& processes);
 void computeProcess(vector<Process_Manager*>& process);
 void computeIO(vector<Process_Manager*>& process);
+void printPCB(vector<Process_Manager*>& processes);
+void RoundRobin(vector<Process_Manager*>& processes);
 
 int main() {
 	vector<Process_Manager*> processes;
@@ -30,7 +32,9 @@ int main() {
 		cin >> menu;
 		switch (resolveOptions(menu)) {
 		case choices::Options::CALCULATE:
-			computeProcess(processes);
+			//computeProcess(processes);
+			//printPCB(processes);
+			RoundRobin(processes);
 			break;
 		case choices::Options::IO:
 			computeIO(processes);
@@ -39,7 +43,7 @@ int main() {
 			cout << "FORK you selected" << endl;
 			break;
 		case choices::Options::END:
-			cout << "Ending" << endl;
+			cout << "To Processor" << endl;
 			return false;
 			break;
 		}
