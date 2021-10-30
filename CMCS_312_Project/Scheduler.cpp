@@ -1,58 +1,85 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <vector>
 #include <map>
 #include "Process_Manager.h"
 
 using namespace std;
 
-template <typename Process_Manager>
-void moveItemToBack(vector<Process_Manager*>& v, size_t itemIndex)
-{
-	auto it = v.begin() + itemIndex;
-	std::rotate(it, it + 1, v.end());
-}
-
 void RoundRobin(vector<Process_Manager*>& processes) {
-	
-	for (auto itr : processes){
-		if (itr->getProcessState() == NEW) {
-			itr->setState(READY);
-		}
-	}
-	for (auto itr : processes) {
-		if (itr->getProcessState() == READY) {
-			itr->setState(RUNNING);
-		}
-	}
+	int counting = 0;
+	int watchValue = 0;
 	while(1){
 		bool done = true;
 		for (auto itr : processes) {
-			if (itr->getProcessState() == RUNNING) {
-				if (itr->getRemainingBurst() > 0) {
-					done = false;
-					int timeRemaining = itr->getRemainingBurst() - itr->m_timeSlice;
-					itr->setBurstRemaining(timeRemaining);
-					itr->setState(WAITING);
-					itr->printSchedule();
+			counting += itr->m_timeSlice;
+			if (itr->getProcessState() == NEW) {
+				itr->printSchedule();
+				if (itr->getCriticalSectionTicket() == 3) {
+					itr->setCriticalState(READY_TO_ENTER_CS);
 				}
-				else if(itr->getRemainingBurst() < itr->m_timeSlice) {
-					itr->setBurstRemaining(0);
+				itr->setState(READY);
+			}
+			if (itr->getProcessState() == READY) {
+				itr->printSchedule();
+				itr->setState(RUNNING);
+			}
+			if (itr->getProcessState() == RUNNING) {
+				itr->printSchedule();
+				//if (itr->getRemainingBurst() > 0) {
+				if (itr->getCriticalState() == READY_TO_ENTER_CS) {
+					itr->setCriticalState(ENTER_CRITICAL_SECTION);
+				}
+				if (itr->getRemainingTemplateBurst() > 0){
+					done = false;
+					//int timeRemaining = itr->getRemainingBurst() - itr->m_timeSlice;
+					int processBurstRemaining = itr->getRemainingTemplateBurst() - itr->m_timeSlice;
+					//itr->setBurstRemaining(timeRemaining);
+					itr->setRemainingTemplateBurst(processBurstRemaining);
+					if (itr->getRemainingTemplateIO() >= 0) {
+						itr->setState(WAITING);
+					}
+					else {
+						itr->setState(READY);
+					}
+					if (itr->getCriticalState() == ENTER_CRITICAL_SECTION) {
+						itr->wait(itr->m_semephore);
+						itr->setCriticalSectionTicket(0);
+						watchValue = itr->m_Changed_Num;
+						itr->m_Changed_Num = itr->getStoredNum();
+						watchValue = itr->m_Changed_Num;
+						itr->signal(itr->m_semephore);
+						itr->setCriticalState(EXIT_CRITICAL_SECTION);
+					}
+				}
+				//else if(itr->getRemainingBurst() < itr->m_timeSlice) {
+				else if(itr->getRemainingTemplateBurst() < itr->m_timeSlice) {
+					//itr->setBurstRemaining(0);
+					itr->setRemainingTemplateBurst(0);
+					itr->setRemainingTemplateIO(0);
 					itr->setState(TERMINATED);
 					itr->printSchedule();
 				}
-				if (itr->getProcessState() == WAITING) {
-					itr->setIORemaining(0);
-					itr->setState(RUNNING);
-					itr->printSchedule();
+			}
+			if (itr->getProcessState() == WAITING) {
+				done = false;
+				itr->printSchedule();
+				int processIORemaining = itr->getRemainingTemplateIO() - itr->m_timeSlice;
+				itr->setRemainingTemplateIO(processIORemaining);
+				if (itr->getScheduleStartIO() > itr->getRemainingTemplateIO()) {
+					itr->setState(WAITING);
 				}
-				if (itr->getState() == TERMINATED) {
-					itr->setBurstRemaining(0);
-					itr->printSchedule();
+				else{
+					itr->setState(READY);
+				}
+				if (itr->getRemainingTemplateBurst() < counting && itr->getScheduleStartIO() > itr->getRemainingTemplateIO()) {
+					itr->setState(READY);
 				}
 			}
 		}
 		if (done == true) break;
+	}
+	for (auto itr : processes) {
+		itr->printPCB();
 	}
 }
