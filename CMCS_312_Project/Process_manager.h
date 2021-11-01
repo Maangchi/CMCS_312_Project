@@ -75,7 +75,6 @@ public:
 	//void setProcessNum(int processNum);
 	void printP();
 	void genVal();
-	void executing(int useCPU);
 
 	//Critical section operations
 	void wait(int m_semephore);
@@ -116,7 +115,7 @@ public:
 	void setState(Process_State State);
 	void setCriticalState(Critical_Section section);
 	void setCriticalSectionTicket(int ticketNum);
-	void setBurstRemaining(int remBurst);
+	//void setBurstRemaining(int remBurst);
 	void setIORemaining(int remIO);
 	void setRemainingTemplateBurst(int remTCalcs);
 	void setRemainingTemplateIO(int remTIO);

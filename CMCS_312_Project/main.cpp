@@ -23,6 +23,7 @@ void computeIO(vector<Process_Manager*>& process);
 void printPCB(vector<Process_Manager*>& processes);
 void RoundRobin(vector<Process_Manager*>& processes);
 
+
 int main() {
 	vector<Process_Manager*> processes;
 	int processNum = howManyProcesses();
@@ -31,6 +32,7 @@ int main() {
 	string menu = "";
 	createProcesses(processes, processNum, calcNum, ioNum);
 	printP(processes);
+	printPCB(processes);
 	//printPCB(processes);
 	while (true) {
 		menuShow(processes);

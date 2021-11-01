@@ -3,6 +3,8 @@
 #include <string>
 #include <map>
 #include <numeric>
+#include <chrono>
+#include <thread>
 #include "Process_Manager.h"
 
 using namespace std;
@@ -77,6 +79,10 @@ void printP(vector<Process_Manager*>& processes) {
 	}
 }
 
+void timeSim(int time) {
+	chrono::milliseconds timespane(time);
+	this_thread::sleep_for(timespane);
+}
 
 void printPCB(vector<Process_Manager*>& processes) {
 	for (auto itr : processes) {
@@ -88,10 +94,11 @@ void computeProcess(vector<Process_Manager*>& process) {
 	int selection = 0;
 	cout << "Select which process you would like to run: ";
 	cin >> selection;
-	if (selection >= process.size()) {
+	if (selection >= process.size() || selection < 0) {
 		cout << "\nYou have entered too high of a number" << endl;
 		return;
 	}
+	timeSim(process[selection]->getRemainingTemplateBurst());
 	process[selection]->printP();
 	int total = process[selection]->getRemainingTemplateBurst();
 	cout << "Your process Ran for: " << total << " Cycles" << endl;
@@ -101,10 +108,11 @@ void computeIO(vector<Process_Manager*>& process) {
 	int selection = 0;
 	cout << "Select which process you would like to run: ";
 	cin >> selection;
-	if (selection >= process.size()) {
+	if (selection >= process.size() || selection < 0) {
 		cout << "\nYou have entered too high of a number" << endl;
 		return;
 	}
+	timeSim(process[selection]->getRemainingTemplateIO());
 	process[selection]->printP();
 	int io = process[selection]->getRemainingTemplateIO();
 	cout << "Your process waited for: " << io << " Cycles" << endl;

@@ -2,9 +2,13 @@
 #include <fstream>
 #include <string>
 #include <map>
+#include <chrono>
+#include <thread>
 #include "Process_Manager.h"
 
 using namespace std;
+
+void timeSim(int time);
 
 void RoundRobin(vector<Process_Manager*>& processes) {
 	int counting = 0;
@@ -15,7 +19,7 @@ void RoundRobin(vector<Process_Manager*>& processes) {
 			counting += itr->m_timeSlice;
 			if (itr->getProcessState() == NEW) {
 				itr->printSchedule();
-				if (itr->getCriticalSectionTicket() == 3) {
+				if (itr->getCriticalSectionTicket() == 2) {
 					itr->setCriticalState(READY_TO_ENTER_CS);
 				}
 				itr->setState(READY);
@@ -36,6 +40,7 @@ void RoundRobin(vector<Process_Manager*>& processes) {
 					int processBurstRemaining = itr->getRemainingTemplateBurst() - itr->m_timeSlice;
 					//itr->setBurstRemaining(timeRemaining);
 					itr->setRemainingTemplateBurst(processBurstRemaining);
+					timeSim(processBurstRemaining);
 					if (itr->getRemainingTemplateIO() >= 0) {
 						itr->setState(WAITING);
 					}
@@ -43,6 +48,7 @@ void RoundRobin(vector<Process_Manager*>& processes) {
 						itr->setState(READY);
 					}
 					if (itr->getCriticalState() == ENTER_CRITICAL_SECTION) {
+						itr->printSchedule();
 						itr->wait(itr->m_semephore);
 						itr->setCriticalSectionTicket(0);
 						watchValue = itr->m_Changed_Num;
@@ -66,6 +72,7 @@ void RoundRobin(vector<Process_Manager*>& processes) {
 				itr->printSchedule();
 				int processIORemaining = itr->getRemainingTemplateIO() - itr->m_timeSlice;
 				itr->setRemainingTemplateIO(processIORemaining);
+				timeSim(processIORemaining);
 				if (itr->getScheduleStartIO() > itr->getRemainingTemplateIO()) {
 					itr->setState(WAITING);
 				}

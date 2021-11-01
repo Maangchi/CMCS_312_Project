@@ -1,8 +1,6 @@
 #include "Process_Manager.h"
 #include <iostream>
 #include <string>
-#include <chrono>
-#include <thread>
 #include <map>
 
 using namespace std;
@@ -73,12 +71,6 @@ void Process_Manager::setPIDincrements(int PID, int PC, int Reg) {
 	m_Registers = Reg * 4;
 }
 
-
-void Process_Manager::executing(int useCPU) {
-	chrono::milliseconds timespane(useCPU);
-	this_thread::sleep_for(timespane);
-}
-
 void Process_Manager::printP() {
 	const string process_state_names[5] = { "NEW", "READY", "RUNNING", "WAITING", "TERMINATED"};
 	cout << "Process #" << m_PID << endl;
@@ -114,7 +106,7 @@ void Process_Manager::printPCB() {
 	//cout << "Remaining IO Waiting: " << m_RemainingIO << endl << endl;
 	cout << "Remaining Burst Cycles: " << m_RemainingTemplateBurst << endl;
 	cout << "Remaining IO Waiting: " << m_RemainingTemplateIO << endl;
-	cout << "Changed Variable in Critical Section: " << m_Changed_Num << endl;
+	cout << "Changed Variable in Critical Section: " << m_Changed_Num << endl << endl;
 
 }
 
