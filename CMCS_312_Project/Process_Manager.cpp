@@ -56,7 +56,7 @@ void Process_Manager::genPCB() {
 	m_List_of_OpenFiles = 0;
 	m_CPU_Scheduling_Information = rand() % 1;
 	m_IO_Status = rand() % 1;
-	m_criticalSectionTicket = rand() % 3 + 1;
+	m_criticalSectionTicket = rand() % 2 + 1;
 	m_storedNum = rand() % 200 + 50;
 }
 
@@ -106,7 +106,12 @@ void Process_Manager::printPCB() {
 	//cout << "Remaining IO Waiting: " << m_RemainingIO << endl << endl;
 	cout << "Remaining Burst Cycles: " << m_RemainingTemplateBurst << endl;
 	cout << "Remaining IO Waiting: " << m_RemainingTemplateIO << endl;
-	cout << "Changed Variable in Critical Section: " << m_Changed_Num << endl << endl;
+	if (m_Changed_Num != 0) {
+		cout << "Changed Variable in Critical Section: " << m_Changed_Num << endl << endl;
+	}
+	else {
+		cout << endl;
+	}
 
 }
 

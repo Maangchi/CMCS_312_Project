@@ -64,7 +64,6 @@ private:
 	Critical_Section m_CriticalState;
 
 public:
-	const int size = 5;
 	int m_semephore;
 	int m_timeSlice = 25;
 	int m_Changed_Num;
