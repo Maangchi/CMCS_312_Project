@@ -27,9 +27,21 @@
     <ClCompile Include="Scheduler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="memory_manage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IO_Handler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Process_manager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="memory_manage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IO_Handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

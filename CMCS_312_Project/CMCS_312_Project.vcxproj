@@ -139,12 +139,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="IO_Handler.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="main_functions.cpp" />
+    <ClCompile Include="memory_manage.cpp" />
     <ClCompile Include="Process_Manager.cpp" />
     <ClCompile Include="Scheduler.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="IO_Handler.h" />
+    <ClInclude Include="memory_manage.h" />
     <ClInclude Include="Process_manager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

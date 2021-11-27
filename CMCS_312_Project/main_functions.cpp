@@ -73,6 +73,30 @@ void createProcesses(vector<Process_Manager*>& processes, int howManyProcesses, 
 	}
 }
 
+
+void createChildren(vector<Process_Manager*>& processes, vector<Process_Manager*>& processesAndChildren)
+{
+	vector<Process_Manager*> children;
+	for (auto itr : processes) {
+		Process_Manager* child = new Process_Manager;
+		child->setParentChild(CHILD);
+		child->setPID(itr->getPID() + processes.size());
+		child->setRemainingTemplateBurst(itr->getRemainingTemplateBurst());
+		child->setRemainingTemplateIO(itr->getRemainingTemplateIO());
+		child->setChildsPID(itr->getPID());
+		child->setMemoryUsed(itr->getMemoryUsed());
+		cout << "child of process: " << itr->getPID() - children.size() << endl;
+		children.push_back(child);
+	}
+	processesAndChildren.reserve(processes.size() + children.size());
+	processesAndChildren.insert(processesAndChildren.end(), processes.begin(), processes.end());
+	processesAndChildren.insert(processesAndChildren.end(), children.begin(), children.end());
+	for (auto itr : processesAndChildren) {
+		itr->printPCB();
+	}
+
+}
+
 void printP(vector<Process_Manager*>& processes) {
 	for (auto itr : processes) {
 		itr->printP();
@@ -158,6 +182,17 @@ std::ostream& operator<<(std::ostream& out, const Critical_Section value) {
 		INSERT_ELEMENT(READY_TO_ENTER_CS);
 		INSERT_ELEMENT(ENTER_CRITICAL_SECTION);
 		INSERT_ELEMENT(EXIT_CRITICAL_SECTION);
+#undef INSERT_ELEMENT
+		return out << strings[value];
+	}
+}
+
+std::ostream& operator<<(std::ostream& out, const Parent_Child value) {
+	static std::map<Parent_Child, string> strings;
+	if (strings.size() == 0) {
+#define INSERT_ELEMENT(p) strings[p] = #p
+		INSERT_ELEMENT(PARENT);
+		INSERT_ELEMENT(CHILD);
 #undef INSERT_ELEMENT
 		return out << strings[value];
 	}

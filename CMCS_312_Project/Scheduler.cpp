@@ -1,46 +1,91 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <vector>
 #include <map>
 #include <chrono>
 #include <thread>
+#include <future>
 #include "Process_Manager.h"
+#include "memory_manage.h"
+#include "IO_Handler.h"
 
 using namespace std;
 
 void timeSim(int time);
 
+// phase 2 threading. 2 threads, main and thread t1
+void thread_calc(Process_Manager* process, int remaining) {
+	int newRemaining = remaining - process->m_timeSlice;
+	process->setRemainingTemplateBurst(newRemaining);
+}
+
+void thread_IO(Process_Manager* process, int remaining) {
+	int newRemaining = remaining - process->m_timeSlice;
+	process->setRemainingTemplateIO(newRemaining);
+}
+
+void cascade_terminate(vector<Process_Manager*>& processes, int PID) {
+	for (auto itr : processes) {
+		if (itr->getParentChild() == CHILD && PID == itr->getChildsPID()) {
+			itr->setState(TERMINATED);
+		}
+		itr->printPCB();
+	}
+}
+
 void RoundRobin(vector<Process_Manager*>& processes) {
 	int counting = 0;
 	int watchValue = 0;
+	int numOfProcesses = processes.size();
+	IO_Handler io_handler;
+	memory_manage memoryManager;
+	memoryManager.setProcessMemoryUsage(memoryManager.m_Memory_Slots);
+	cout << "Total Memory being Used: " << memoryManager.getProcessMemoryUsage() << endl;
 	while(1){
 		bool done = true;
 		for (auto itr : processes) {
 			counting += itr->m_timeSlice;
+			io_handler.external_Event(itr, itr->m_timeSlice); //25 cycles are passed with each time the scheduler loops, thus for 25 cycles in each process, there is a chance for it to be interrupted by a peripheral device
+			memoryManager.setProcessMemoryUsage(memoryManager.m_Memory_Slots);
 			if (itr->getProcessState() == NEW) {
 				itr->printSchedule();
+				done = false;
+				//fill up memory with new processes
+				if ((memoryManager.getProcessMemoryUsage() + itr->getMemoryUsed()) > memoryManager.m_TotalMemory)
+				{
+					itr->setState(NEW);
+
+					cout << memoryManager.getProcessMemoryUsage() << endl;
+				}
+				else {
+					memoryManager.m_Memory_Slots.push_back(itr->getMemoryUsed());
+					timeSim(1);
+					for (auto itr : memoryManager.m_Memory_Slots) cout << "Memory Used Slot check: "  << "{" << itr << "}" << endl;
+					cout << memoryManager.m_TotalMemory << endl;
+					memoryManager.setProcessMemoryUsage(memoryManager.m_Memory_Slots);
+					cout << "Total Memory being Used: " << memoryManager.getProcessMemoryUsage() << endl;
+					itr->setState(READY);
+				}
 				if (itr->getCriticalSectionTicket() == 2) {
 					itr->setCriticalState(READY_TO_ENTER_CS);
 				}
-				itr->setState(READY);
 			}
 			if (itr->getProcessState() == READY) {
 				itr->printSchedule();
 				itr->setState(RUNNING);
 			}
 			if (itr->getProcessState() == RUNNING) {
-				itr->printSchedule();
-				//if (itr->getRemainingBurst() > 0) {
 				if (itr->getCriticalState() == READY_TO_ENTER_CS) {
 					itr->setCriticalState(ENTER_CRITICAL_SECTION);
 				}
 				if (itr->getRemainingTemplateBurst() > 0){
 					done = false;
-					//int timeRemaining = itr->getRemainingBurst() - itr->m_timeSlice;
 					int processBurstRemaining = itr->getRemainingTemplateBurst() - itr->m_timeSlice;
-					//itr->setBurstRemaining(timeRemaining);
-					itr->setRemainingTemplateBurst(processBurstRemaining);
-					timeSim(processBurstRemaining);
+					thread t1(thread_calc, ref(itr), processBurstRemaining);	// phase 2 thread 2 calcs
+					t1.join(); //thread 2 finished computing and joined
+					itr->setRemainingTemplateBurst(processBurstRemaining); //thread 1 (main thread)
+					itr->printSchedule();
 					if (itr->getRemainingTemplateIO() >= 0) {
 						itr->setState(WAITING);
 					}
@@ -58,21 +103,22 @@ void RoundRobin(vector<Process_Manager*>& processes) {
 						itr->setCriticalState(EXIT_CRITICAL_SECTION);
 					}
 				}
-				//else if(itr->getRemainingBurst() < itr->m_timeSlice) {
 				else if(itr->getRemainingTemplateBurst() < itr->m_timeSlice) {
-					//itr->setBurstRemaining(0);
 					itr->setRemainingTemplateBurst(0);
 					itr->setRemainingTemplateIO(0);
 					itr->setState(TERMINATED);
+					for (auto itr : memoryManager.m_Memory_Slots) cout << "Memory Freed Slot check: " << "{" << itr << "}" << endl;
 					itr->printSchedule();
 				}
 			}
 			if (itr->getProcessState() == WAITING) {
 				done = false;
-				itr->printSchedule();
 				int processIORemaining = itr->getRemainingTemplateIO() - itr->m_timeSlice;
-				itr->setRemainingTemplateIO(processIORemaining);
+				thread t1(thread_IO, ref(itr), processIORemaining); //phase 2 thread 2 IO waits
+				t1.join();	//thread 2 finished computing and joined
+				itr->setRemainingTemplateIO(processIORemaining); //thread 1 (main thread)
 				timeSim(processIORemaining);
+				itr->printSchedule();
 				if (itr->getScheduleStartIO() > itr->getRemainingTemplateIO()) {
 					itr->setState(WAITING);
 				}
@@ -83,10 +129,14 @@ void RoundRobin(vector<Process_Manager*>& processes) {
 					itr->setState(READY);
 				}
 			}
+			if (itr->getProcessState() == TERMINATED) {
+				if (itr->getParentChild() == PARENT) cascade_terminate(processes, itr->getPID()); //terminates children if parent terminates before child
+				memoryManager.freeUpSpace(itr, memoryManager.m_Memory_Slots);
+				memoryManager.setProcessMemoryUsage(memoryManager.m_Memory_Slots);
+			}
 		}
 		if (done == true) break;
 	}
-	for (auto itr : processes) {
-		itr->printPCB();
-	}
+	for (auto itr : processes) { itr->printPCB(); }
+	for (auto itr : memoryManager.m_Memory_Slots) cout << "Memory Used Slot check: " << "{" << itr << "}" << endl;
 }

@@ -17,6 +17,7 @@ choices::Options resolveOptions(string input);
 void calculateTotalBurstsOfProcesses(vector<Process_Manager*>& processesCalcs);
 void menuShow(vector<Process_Manager*>& size);
 void createProcesses(vector<Process_Manager*>& processes, int howManyProcesses, int howManyCalcs, int howManyIO);
+void createChildren(vector<Process_Manager*>& processes, vector<Process_Manager*>& ParentAndChild);
 void printP(vector<Process_Manager*>& processes);
 void computeProcess(vector<Process_Manager*>& process);
 void computeIO(vector<Process_Manager*>& process);
@@ -26,6 +27,7 @@ void RoundRobin(vector<Process_Manager*>& processes);
 
 int main() {
 	vector<Process_Manager*> processes;
+	vector<Process_Manager*> ParentAndChild;
 	int processNum = howManyProcesses();
 	int calcNum = howManyCalcs();
 	int ioNum = howManyIO();
@@ -35,21 +37,22 @@ int main() {
 	printPCB(processes);
 	//printPCB(processes);
 	while (true) {
-		menuShow(processes);
+		menuShow(ParentAndChild);
 		cin >> menu;
 		switch (resolveOptions(menu)) {
 		case choices::Options::CALCULATE:
-			computeProcess(processes);
+			computeProcess(ParentAndChild);
 			break;
 		case choices::Options::IO:
-			computeIO(processes);
+			computeIO(ParentAndChild);
 			break;
 		case choices::Options::SCHEDULE:
-			calculateTotalBurstsOfProcesses(processes);
-			RoundRobin(processes);
+			calculateTotalBurstsOfProcesses(ParentAndChild);
+			RoundRobin(ParentAndChild);
 			break;
 		case choices::Options::FORK:
 			cout << "FORK you selected" << endl;
+			createChildren(processes, ParentAndChild);
 			break;
 		case choices::Options::END:
 			cout << "To Processor" << endl;

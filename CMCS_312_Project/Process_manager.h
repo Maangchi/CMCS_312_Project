@@ -1,5 +1,8 @@
 #pragma once
 #include <vector>
+#include <thread>
+#include <mutex>
+
 namespace choices {
 	enum Options
 	{
@@ -19,6 +22,11 @@ enum Process_State {
 	TERMINATED,
 };
 
+enum Parent_Child {
+	PARENT,
+	CHILD
+};
+
 enum Critical_Section {
 	NO_CRITICAL_SECTION,
 	READY_TO_ENTER_CS,
@@ -26,20 +34,8 @@ enum Critical_Section {
 	EXIT_CRITICAL_SECTION
 };
 
-class Process_Manager {
+class Process_Manager{
 private:
-	//Process Burst Cycle Information
-	//int m_calculate;
-	//int m_calculate1;
-	//int m_calculate2;
-	//int m_calculateTotal;
-	//int m_io;
-	//int m_io1;
-	//int m_ioTotal;
-
-	//Refined Burst IO cycle Members
-	//int m_RemainingBurst;
-	//int m_RemainingIO;
 	std::vector<int> m_templatedCalculates;
 	std::vector<int> m_templatedIO;
 	int m_storedNum;
@@ -47,21 +43,23 @@ private:
 	int m_RemainingTemplateIO;
 	int m_totalCalcProcesses;
 	int m_scheduleStartIO;
-
 	int m_criticalSectionTicket;
+	std::mutex m_mutex;
 
 private:
 	//PCB Information
 	int m_PID;
+	int m_ChildsPID;
 	int m_Priority;
 	int m_ProgramCounter;
 	int m_Registers;
-	int m_MemoryLimits;
+	int m_MemoryUsed;
 	int m_List_of_OpenFiles;
 	int m_CPU_Scheduling_Information;
 	int m_IO_Status;
 	Process_State m_State;
 	Critical_Section m_CriticalState;
+	Parent_Child m_ParentOrChild;
 
 public:
 	int m_semephore;
@@ -73,7 +71,6 @@ public:
 
 	//void setProcessNum(int processNum);
 	void printP();
-	void genVal();
 
 	//Critical section operations
 	void wait(int m_semephore);
@@ -84,49 +81,35 @@ public:
 	void printPCB();
 	void printSchedule();
 
-	//Scheduler
-	//void RoundRobin(vector<Process_Manager*>& processes);
-
 	//Getters
-	//int getCalc();
-	//int getCalc1();
-	//int getCalc2();
-	//int getCalcTotal();
-	//int getIO();
-	//int getIO1();
-	int getIOTotal();
 	int getState();
-	int getRemainingBurst();
-	int getIORemaining();
 	int getProcessState();
+	int getChildsPID() { return m_ChildsPID; }
 	int getCriticalState() { return m_CriticalState; }
+	int getParentChild() { return m_ParentOrChild; }
 	int getRemainingTemplateBurst();
 	int getRemainingTemplateIO();
+	int getMemoryUsed() { return m_MemoryUsed; }
 	int getStoredNum() { return m_storedNum; }
 	int getCriticalSectionTicket() { return m_criticalSectionTicket; }
 	int getScheduleStartIO() { return m_scheduleStartIO; }
 	int getTotalCalcProcesses() { return m_totalCalcProcesses; }
+	int getPID() { return m_PID; }
 	std::vector<int>& getCalcVec() { return m_templatedCalculates; }
 	std::vector<int>& getIOVec() { return m_templatedIO; }
 
 	//Setters
 	void setPIDincrements(int PN, int PC, int Reg);
+	void setChildsPID(int ParentPID);
 	void setState(Process_State State);
 	void setCriticalState(Critical_Section section);
+	void setParentChild(Parent_Child ParentChild);
 	void setCriticalSectionTicket(int ticketNum);
-	//void setBurstRemaining(int remBurst);
-	void setIORemaining(int remIO);
+	void setMemoryUsed(int MemoryInUse);
+	void setPID(int PID);
 	void setRemainingTemplateBurst(int remTCalcs);
 	void setRemainingTemplateIO(int remTIO);
 	void setTotalCalcProcesses(int totalCalc);
 	void setScheduleStartIO(int scheduleStartIO);
 	void setStoredNum(int storedNum);
-};
-
-class Process_Child :public Process_Manager {
-private:
-	int m_PID;
-
-public:
-	void genPCB();
 };
