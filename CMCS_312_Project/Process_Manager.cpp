@@ -116,6 +116,11 @@ void Process_Manager::printSchedule() {
 	cout << "*************************" << endl << endl;
 }
 
+void Process_Manager::printChildsParent() {
+	cout << "Parents PID:\t" << m_ChildsPID << endl;
+	cout << "PID:\t" << m_PID << endl;
+}
+
 
 int Process_Manager::getState() {
 	return m_State;

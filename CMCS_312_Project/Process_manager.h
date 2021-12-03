@@ -112,4 +112,5 @@ public:
 	void setTotalCalcProcesses(int totalCalc);
 	void setScheduleStartIO(int scheduleStartIO);
 	void setStoredNum(int storedNum);
+	void printChildsParent();
 };

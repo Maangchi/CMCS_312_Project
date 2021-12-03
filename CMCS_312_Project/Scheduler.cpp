@@ -19,8 +19,8 @@ void thread_calc(Process_Manager* process, int remaining) {
 	process->printSchedule();
 	int newRemaining = remaining - process->m_timeSlice;
 	process->setRemainingTemplateBurst(newRemaining);
-	cout << "Current Thread: " << process->getChildsPID() << " " << endl;
-	cout << "Calculations Ran by Thread: " << newRemaining << endl;
+	cout << "Current Thread PID\t: " << process->getPID() << " " << endl;
+	cout << "Calculations Ran by Thread: " << process->m_timeSlice << endl << endl;
 
 	timeSim(process->m_timeSlice);
 }
@@ -29,18 +29,20 @@ void thread_IO(Process_Manager* process, int remaining) {
 	process->printSchedule();
 	int newRemaining = remaining - process->m_timeSlice;
 	process->setRemainingTemplateIO(newRemaining);
-	cout << "Current Thread: " << process->getChildsPID() << " " << endl;
-	cout << "Waiting cycles of Thread: " << newRemaining << endl;
+	cout << "Current Thread PID\t: " << process->getPID() << " " << endl;
+	cout << "Waiting cycles of Thread: " << process->m_timeSlice << endl << endl;
 
 	timeSim(process->m_timeSlice);
 }
 
 void cascade_terminate(vector<Process_Manager*>& processes, int PID) {
+	int foundChild;
 	for (auto itr : processes) {
-		if (itr->getParentChild() == CHILD && PID == itr->getChildsPID()) {
+		if (itr->getParentChild() == CHILD && PID == itr->getChildsPID() && itr->getState() != TERMINATED) {
 			itr->setState(TERMINATED);
+			cout << ":: ********************Track Cascade Termination********************** :: " << endl;
+			itr->printChildsParent();
 		}
-		itr->printPCB();
 	}
 }
 
