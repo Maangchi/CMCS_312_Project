@@ -16,13 +16,23 @@ void timeSim(int time);
 
 // phase 2 threading. 2 threads, main and thread t1
 void thread_calc(Process_Manager* process, int remaining) {
+	process->printSchedule();
 	int newRemaining = remaining - process->m_timeSlice;
 	process->setRemainingTemplateBurst(newRemaining);
+	cout << "Current Thread: " << process->getChildsPID() << " " << endl;
+	cout << "Calculations Ran by Thread: " << newRemaining << endl;
+
+	timeSim(process->m_timeSlice);
 }
 
 void thread_IO(Process_Manager* process, int remaining) {
+	process->printSchedule();
 	int newRemaining = remaining - process->m_timeSlice;
 	process->setRemainingTemplateIO(newRemaining);
+	cout << "Current Thread: " << process->getChildsPID() << " " << endl;
+	cout << "Waiting cycles of Thread: " << newRemaining << endl;
+
+	timeSim(process->m_timeSlice);
 }
 
 void cascade_terminate(vector<Process_Manager*>& processes, int PID) {
@@ -82,9 +92,9 @@ void RoundRobin(vector<Process_Manager*>& processes) {
 				if (itr->getRemainingTemplateBurst() > 0){
 					done = false;
 					int processBurstRemaining = itr->getRemainingTemplateBurst() - itr->m_timeSlice;
+					itr->setRemainingTemplateBurst(processBurstRemaining); //thread 1 (main thread)
 					thread t1(thread_calc, ref(itr), processBurstRemaining);	// phase 2 thread 2 calcs
 					t1.join(); //thread 2 finished computing and joined
-					itr->setRemainingTemplateBurst(processBurstRemaining); //thread 1 (main thread)
 					itr->printSchedule();
 					if (itr->getRemainingTemplateIO() >= 0) {
 						itr->setState(WAITING);
@@ -114,9 +124,9 @@ void RoundRobin(vector<Process_Manager*>& processes) {
 			if (itr->getProcessState() == WAITING) {
 				done = false;
 				int processIORemaining = itr->getRemainingTemplateIO() - itr->m_timeSlice;
+				itr->setRemainingTemplateIO(processIORemaining); //thread 1 (main thread)
 				thread t1(thread_IO, ref(itr), processIORemaining); //phase 2 thread 2 IO waits
 				t1.join();	//thread 2 finished computing and joined
-				itr->setRemainingTemplateIO(processIORemaining); //thread 1 (main thread)
 				timeSim(processIORemaining);
 				itr->printSchedule();
 				if (itr->getScheduleStartIO() > itr->getRemainingTemplateIO()) {
