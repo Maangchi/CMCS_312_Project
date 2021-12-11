@@ -24,7 +24,8 @@ enum Process_State {
 
 enum Parent_Child {
 	PARENT,
-	CHILD
+	CHILD,
+	GRAND_CHILD
 };
 
 enum Critical_Section {
@@ -50,13 +51,14 @@ private:
 	//PCB Information
 	int m_PID;
 	int m_ChildsPID;
-	int m_Priority;
+	int m_Priority;	//PHASE 3 PRIORITIES
 	int m_ProgramCounter;
 	int m_Registers;
 	int m_MemoryUsed;
 	int m_List_of_OpenFiles;
 	int m_CPU_Scheduling_Information;
 	int m_IO_Status;
+	int m_Resources;
 	Process_State m_State;
 	Critical_Section m_CriticalState;
 	Parent_Child m_ParentOrChild;
@@ -69,8 +71,12 @@ public:
 	//Constructor
 	Process_Manager();
 
-	//void setProcessNum(int processNum);
+
+	//Printers
 	void printP();
+	void printChildsParent();
+	void printPCB();
+	void printSchedule();
 
 	//Critical section operations
 	void wait(int m_semephore);
@@ -78,8 +84,6 @@ public:
 
 	//Generate PCB block information
 	void genPCB();
-	void printPCB();
-	void printSchedule();
 
 	//Getters
 	int getState();
@@ -95,6 +99,7 @@ public:
 	int getScheduleStartIO() { return m_scheduleStartIO; }
 	int getTotalCalcProcesses() { return m_totalCalcProcesses; }
 	int getPID() { return m_PID; }
+	int getResources() { return m_Resources; }
 	std::vector<int>& getCalcVec() { return m_templatedCalculates; }
 	std::vector<int>& getIOVec() { return m_templatedIO; }
 
@@ -112,5 +117,5 @@ public:
 	void setTotalCalcProcesses(int totalCalc);
 	void setScheduleStartIO(int scheduleStartIO);
 	void setStoredNum(int storedNum);
-	void printChildsParent();
+	void setResources(int resources) { m_Resources = resources; }
 };

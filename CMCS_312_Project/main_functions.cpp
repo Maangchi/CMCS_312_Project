@@ -97,6 +97,31 @@ void createChildren(vector<Process_Manager*>& processes, vector<Process_Manager*
 
 }
 
+void createGrandChildren(vector<Process_Manager*>& processes, vector<Process_Manager*>& processesAndChildren)
+{
+	vector<Process_Manager*> grandChildren;
+	for (auto itr : processes) {
+		if (itr->getParentChild() == CHILD) {
+			Process_Manager* grandChild = new Process_Manager;
+			grandChild->setParentChild(GRAND_CHILD);
+			grandChild->setPID(itr->getPID() + processes.size()/2);
+			grandChild->setRemainingTemplateBurst(itr->getRemainingTemplateBurst());
+			grandChild->setRemainingTemplateIO(itr->getRemainingTemplateIO());
+			grandChild->setChildsPID(itr->getPID());
+			grandChild->setMemoryUsed(itr->getMemoryUsed());
+			cout << "grandChild of process: " << itr->getPID() - grandChildren.size() << endl;
+			grandChildren.push_back(grandChild);
+		}
+	}
+	processesAndChildren.reserve(processes.size() + grandChildren.size());
+	processesAndChildren.insert(processesAndChildren.end(), processes.begin(), processes.end());
+	processesAndChildren.insert(processesAndChildren.end(), grandChildren.begin(), grandChildren.end());
+	for (auto itr : processesAndChildren) {
+		itr->printPCB();
+	}
+
+}
+
 void printP(vector<Process_Manager*>& processes) {
 	for (auto itr : processes) {
 		itr->printP();
@@ -193,6 +218,7 @@ std::ostream& operator<<(std::ostream& out, const Parent_Child value) {
 #define INSERT_ELEMENT(p) strings[p] = #p
 		INSERT_ELEMENT(PARENT);
 		INSERT_ELEMENT(CHILD);
+		INSERT_ELEMENT(GRAND_CHILD);
 #undef INSERT_ELEMENT
 		return out << strings[value];
 	}

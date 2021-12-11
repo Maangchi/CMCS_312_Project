@@ -36,15 +36,39 @@ void thread_IO(Process_Manager* process, int remaining) {
 }
 
 void cascade_terminate(vector<Process_Manager*>& processes, int PID) {
-	int foundChild;
 	for (auto itr : processes) {
-		if (itr->getParentChild() == CHILD && PID == itr->getChildsPID() && itr->getState() != TERMINATED) {
+		if ((itr->getParentChild() == CHILD || itr->getParentChild() == GRAND_CHILD) && PID == itr->getChildsPID() && itr->getState() != TERMINATED) {
 			itr->setState(TERMINATED);
 			cout << ":: ********************Track Cascade Termination********************** :: " << endl;
 			itr->printChildsParent();
 		}
 	}
 }
+
+void print_Resources(int resources) {
+	cout << "\n*************Resource Manager****************\n\t Used Resources: " << resources << endl << endl;
+}
+
+int usedResources = 0;
+static int maxResources = 1042;
+
+void resource_manager_add(int resources) {
+	usedResources += resources;
+}
+void resource_manager_sub(int resources) {
+	usedResources -= resources;
+}
+
+void deadlock_avoid(Process_Manager* process) {
+	int need = process->getResources();
+	if (need > (maxResources - usedResources)) {
+		process->setState(READY);
+		process->setResources(0);
+		cout << "\n******Need Greater Than Available Resources******\n" << endl;
+	}
+}
+
+
 
 void RoundRobin(vector<Process_Manager*>& processes) {
 	int counting = 0;
@@ -84,14 +108,21 @@ void RoundRobin(vector<Process_Manager*>& processes) {
 				}
 			}
 			if (itr->getProcessState() == READY) {
+				resource_manager_sub(itr->getResources());
+				print_Resources(usedResources);
+				itr->setResources(0);
 				itr->printSchedule();
 				itr->setState(RUNNING);
+				deadlock_avoid(itr);
 			}
 			if (itr->getProcessState() == RUNNING) {
 				if (itr->getCriticalState() == READY_TO_ENTER_CS) {
 					itr->setCriticalState(ENTER_CRITICAL_SECTION);
 				}
 				if (itr->getRemainingTemplateBurst() > 0){
+					itr->setResources(itr->getRemainingTemplateBurst() + itr->getMemoryUsed());
+					resource_manager_add(itr->getResources());
+					print_Resources(usedResources);
 					done = false;
 					int processBurstRemaining = itr->getRemainingTemplateBurst() - itr->m_timeSlice;
 					itr->setRemainingTemplateBurst(processBurstRemaining); //thread 1 (main thread)
@@ -142,6 +173,9 @@ void RoundRobin(vector<Process_Manager*>& processes) {
 				}
 			}
 			if (itr->getProcessState() == TERMINATED) {
+				resource_manager_sub(itr->getResources());
+				print_Resources(usedResources);
+				itr->setResources(0);
 				if (itr->getParentChild() == PARENT) cascade_terminate(processes, itr->getPID()); //terminates children if parent terminates before child
 				memoryManager.freeUpSpace(itr, memoryManager.m_Memory_Slots);
 				memoryManager.setProcessMemoryUsage(memoryManager.m_Memory_Slots);

@@ -4,6 +4,7 @@
 #include <thread>
 #include <mutex>
 #include <map>
+#include <random>
 
 using namespace std;
 Process_Manager::Process_Manager() {
@@ -24,6 +25,7 @@ Process_Manager::Process_Manager() {
 	m_CPU_Scheduling_Information = 0;
 	m_IO_Status = 0;
 	m_storedNum = 0;
+	m_Resources = 0;
 	m_State = NEW;
 	m_ParentOrChild = PARENT;
 	
@@ -41,9 +43,14 @@ Process_Manager::Process_Manager() {
 }
 
 void Process_Manager::genPCB() {
+	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+	std::default_random_engine generator(seed);
+
+	std::uniform_int_distribution<int> distribution(1, 2);
 	m_PID;
 	m_ProgramCounter;
 	m_Registers;
+	m_Priority = distribution(generator); // given priority between 1 and 2
 	m_MemoryUsed = rand() % 350 + 50;
 	m_List_of_OpenFiles = 0;
 	m_CPU_Scheduling_Information = rand() % 1;
@@ -74,10 +81,11 @@ void Process_Manager::printP() {
 
 void Process_Manager::printPCB() {
 	const string process_state_names[6] = { "NEW", "READY", "RUNNING", "WAITING", "TERMINATED"};
-	const string parent_or_child[2] = { "PARENT", "CHILD" };
+	const string parent_or_child[3] = { "PARENT", "CHILD" , "GRANDCHILD"};
 	cout << "***Process Control Block****" << endl;
 	cout << "Process State:\t" << process_state_names[m_State] << endl;
 	cout << "PID:\t\t" << m_PID << endl;
+	cout << "Priority:\t" << m_Priority << endl;
 	cout << "Process is a: " << parent_or_child[m_ParentOrChild] << endl;
 	cout << "PC:\t\t" << m_ProgramCounter << endl;
 	cout << "Register:\t" << m_Registers << endl;
@@ -102,7 +110,7 @@ void Process_Manager::printPCB() {
 
 void Process_Manager::printSchedule() {
 	const string process_state_names[5] = { "NEW", "READY", "RUNNING", "WAITING", "TERMINATED" };
-	const string parent_or_child[2] = { "PARENT", "CHILD" };
+	const string parent_or_child[3] = { "PARENT", "CHILD", "GRANDCHILD"};
 	const string critical_state_names[5] = { "NO_CRITICAL_SECTION", "READY_TO_ENTER_CS", "ENTER_CRITICAL_SECTION", "EXIT_CRITICAL_SECTION" };
 	cout << "***Process in Schedule***" << endl;
 	cout << "PID:\t\t\t" << m_PID << endl;
